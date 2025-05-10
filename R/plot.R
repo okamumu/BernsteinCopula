@@ -1,35 +1,30 @@
 #' Contour Plot from Grid Data Using ggplot2
 #'
-#' Creates a contour or filled contour plot using ggplot2 from grid data (like base R's contour).
+#' Creates a contour or filled contour plot using ggplot2 from grid data (like base R's contour),
+#' with optional overlay of points.
 #'
 #' @param x Numeric vector of x values.
 #' @param y Numeric vector of y values.
 #' @param z Matrix of z values. Dimensions must match length(x) × length(y).
-#' @param filled Logical. If TRUE, use filled contour (`geom_contour_filled`). Default FALSE.
+#' @param filled Logical. If TRUE, use filled contour (`geom_contour_filled`). Default TRUE.
 #' @param title Character. Plot title. Default: "Contour Plot".
 #' @param xlabel Character. Label for x axis. Default: "x".
 #' @param ylabel Character. Label for y axis. Default: "y".
-#' @param xlim Numeric vector of length 2, giving x axis limits. Default NULL (auto).
-#' @param ylim Numeric vector of length 2, giving y axis limits. Default NULL (auto).
+#' @param xlim, ylim Axis limits. Default NULL.
+#' @param points Optional data frame with columns `x` and `y` to overlay on the plot.
 #' @param ... Additional arguments passed to the ggplot2 layer.
 #'
-#' @return A ggplot object with the contour plot.
+#' @return A ggplot object.
 #' @export
-#'
-#' @examples
-#' x <- seq(-3, 3, length.out = 100)
-#' y <- seq(-3, 3, length.out = 100)
-#' z <- outer(x, y, function(x, y) dnorm(x) * dnorm(y))
-#' plot_contour(x, y, z, xlim = c(-1, 1), ylim = c(-2, 2),
-#'                 title = "Zoomed PDF", xlabel = "X", ylabel = "Y")
 plot_contour <- function(x, y, z,
-                            filled = FALSE,
-                            title = "Contour Plot",
-                            xlabel = "x",
-                            ylabel = "y",
-                            xlim = NULL,
-                            ylim = NULL,
-                            ...) {
+                         filled = TRUE,
+                         title = "Contour Plot",
+                         xlabel = "x",
+                         ylabel = "y",
+                         xlim = NULL,
+                         ylim = NULL,
+                         points = NULL,
+                         ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("The 'ggplot2' package is required but not installed.")
   }
@@ -46,6 +41,16 @@ plot_contour <- function(x, y, z,
     p <- p + ggplot2::geom_contour_filled(...)
   } else {
     p <- p + ggplot2::geom_contour(...)
+  }
+
+  if (!is.null(points)) {
+    if (!all(c("x", "y") %in% names(points))) {
+      stop("points must be a data frame with columns 'x' and 'y'")
+    }
+    p <- p + ggplot2::geom_point(data = points,
+                                 ggplot2::aes(x = x, y = y),
+                                 inherit.aes = FALSE,
+                                 alpha = 0.4, color = "black")
   }
 
   p <- p + ggplot2::labs(title = title, x = xlabel, y = ylabel) +

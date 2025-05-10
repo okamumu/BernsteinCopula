@@ -1,0 +1,105 @@
+---
+
+title: "Estimating a Bernstein Copula from Multivariate Normal Data"
+output: rmarkdown::html\_vignette
+vignette: >
+%\VignetteIndexEntry{BernsteinCopula: Estimation from Multivariate Normal}
+%\VignetteEngine{knitr::rmarkdown}
+\usepackage\[utf8]{inputenc}
+----------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
+library(BernsteinCopula)
+library(MASS)
+library(ggplot2)
+```
+
+## Introduction
+
+In this vignette, we demonstrate how to estimate a Bernstein copula from samples drawn from a bivariate normal distribution.
+
+## Simulating Data from a Bivariate Normal
+
+We use the `MASS::mvrnorm` function to generate samples:
+
+```{r simulate-data}
+set.seed(123)
+Sigma <- matrix(c(1, 0.7, 0.7, 1), 2, 2)
+data <- MASS::mvrnorm(n = 200, mu = c(0, 0), Sigma = Sigma)
+x <- data[,1]
+y <- data[,2]
+```
+
+## Visualizing the Data
+
+We can visualize the simulated data using a scatter plot:
+```{r plot-data}
+df <- data.frame(x = x, y = y)
+ggplot(df, aes(x = x, y = y)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Bivariate Normal Data", x = "X", y = "Y") +
+  theme_minimal()
+```
+
+## Estimating Marginal Distributions
+We can estimate the marginal distributions of `x` and `y` using the normal distribution:
+```{r marginal-distributions}
+Fx <- normaldist(mean = mean(x), sd = sd(x))
+Gy <- normaldist(mean = mean(y), sd = sd(y))
+
+xgrid <- seq(min(x) - 2, max(x) + 2, length.out = 200)
+
+df_fx <- data.frame(x = xgrid, density = Fx$pdf(xgrid))
+ggplot(df_fx, aes(x = x, y = density)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Marginal Distribution of X", x = "X", y = "Density") +
+  theme_minimal()
+
+df_gy <- data.frame(y = xgrid, density = Gy$pdf(xgrid))
+ggplot(df_gy, aes(x = y, y = density)) +
+  geom_line(color = "darkgreen") +
+  labs(title = "Marginal Distribution of Y", x = "Y", y = "Density") +
+  theme_minimal()
+```
+
+## Transforming to Uniform Margins
+
+To estimate the copula, we first transform the data to uniform margins using the cumulative distribution function (CDF) of the normal distribution:
+
+```{r pseudo-observations}
+u <- Fx$cdf(x)
+v <- Gy$cdf(y)
+```
+
+## EM Estimation of the Bernstein Copula
+
+We initialize a uniform matrix for the copula weights:
+
+```{r em-estimation}
+m <- 4
+n <- 4
+R0 <- matrix(1/(m * n), m, n)
+result <- emloop(u, v, R_init = R0)
+result$R
+```
+
+## Visualizing the Copula Density
+
+We now transform the original data to copula density estimates:
+
+```{r plot-density}
+xg <- seq(min(x), max(x), length.out = 50)
+yg <- seq(min(y), max(y), length.out = 50)
+Z <- bernstein_joint_pdf_grid(xg, yg, result$R, Fx, Gy)
+
+df_data <- data.frame(x = x, y = y)
+plot_contour(xg, yg, Z,
+             title = "Estimated Joint Density with Data",
+             xlabel = "x", ylabel = "y",
+             points = df_data)
+```
+
+## Conclusion
+
+We have shown how to estimate a Bernstein copula from bivariate normal data using the EM algorithm. The resulting copula captures the dependence structure and can be visualized with estimated joint density plots.
