@@ -69,7 +69,7 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 #' EM Algorithm for Bernstein Copula with Flexible Marginals (via R6)
 #'
 #' Runs the EM algorithm to estimate a Bernstein copula and marginal distributions jointly.
-#' Marginals are specified via R6 objects `F` and `G`, each of which should provide:
+#' Marginals are specified via R6 objects `Fx` and `Gy`, each of which should provide:
 #' - `params`: named list of initial parameters,
 #' - `pdf_func(x, params)`: function to evaluate the marginal density,
 #' - `cdf_func(x, params)`: function to evaluate the marginal CDF,
@@ -79,8 +79,8 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 #' @param y Numeric vector. Samples for variable Y.
 #' @param R_init Matrix. Initial copula weight matrix of size \eqn{m \times n}.
 #' @param prior Matrix or `NULL`. Prior weight matrix for tau-bar; defaults to a matrix of ones.
-#' @param F R6 object representing the marginal model for X. Must have fields and methods as described above.
-#' @param G R6 object representing the marginal model for Y. Must have fields and methods as described above.
+#' @param Fx R6 object representing the marginal model for X. Must have fields and methods as described above.
+#' @param Gy R6 object representing the marginal model for Y. Must have fields and methods as described above.
 #' @param options List of algorithm options. Must contain:
 #'   \describe{
 #'     \item{maxiter}{Maximum number of EM iterations.}
@@ -109,7 +109,7 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 #' @examples
 #' # See vignette or examples for full usage with R6 marginal models.
 emloop_with_F <- function(x, y, R_init, prior = NULL,
-  F, G, options = list()) {
+  Fx, Gy, options = list()) {
   stopifnot(is.matrix(R_init))
   m <- nrow(R_init)
   n <- ncol(R_init)
@@ -147,8 +147,8 @@ emloop_with_F <- function(x, y, R_init, prior = NULL,
   eyw2 <- numeric(N)
 
   R <- R_init
-  params1 <- F$params
-  params2 <- G$params
+  params1 <- Fx$params
+  params2 <- Gy$params
   llf_old <- -Inf
 
   converged <- FALSE
@@ -156,10 +156,10 @@ emloop_with_F <- function(x, y, R_init, prior = NULL,
 
     tau_bar <- prior
 
-    du <- F$pdf_func(x, params1)
-    dv <- G$pdf_func(y, params2)
-    u  <- F$cdf_func(x, params1)
-    v  <- G$cdf_func(y, params2)
+    du <- Fx$pdf_func(x, params1)
+    dv <- Gy$pdf_func(y, params2)
+    u  <- Fx$cdf_func(x, params1)
+    v  <- Gy$cdf_func(y, params2)
 
     llf <- bernstein_estep_with_weight(u, v, du, dv, R, tau_bar, exw1, exw2, eyw1, eyw2)
 
@@ -171,8 +171,8 @@ emloop_with_F <- function(x, y, R_init, prior = NULL,
       stop("Unknown mstep method: ", opts$mstep)
     }
 
-    params1 <- F$emstep_func(x, exw1, exw2, params1)
-    params2 <- G$emstep_func(y, eyw1, eyw2, params2)
+    params1 <- Fx$emstep_func(x, exw1, exw2, params1)
+    params2 <- Gy$emstep_func(y, eyw1, eyw2, params2)
 
     abserror <- abs(llf - llf_old)
     relerror <- abs(llf - llf_old) / (abs(llf_old) + 1e-10)

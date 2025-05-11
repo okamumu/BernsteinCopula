@@ -1,12 +1,11 @@
 ---
-
-title: "Estimating a Bernstein Copula from Multivariate Normal Data"
-output: rmarkdown::html\_vignette
+title: "Estimating a Bernstein Copula and Marginals from Multivariate Normal Data"
+output: rmarkdown::html_vignette
 vignette: >
-%\VignetteIndexEntry{BernsteinCopula: Estimation from Multivariate Normal}
-%\VignetteEngine{knitr::rmarkdown}
-\usepackage\[utf8]{inputenc}
-----------------------------
+  %\VignetteIndexEntry{BernsteinCopula: Estimation of Marginals from Multivariate Normal}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
@@ -61,20 +60,20 @@ result <- emloop_with_F(
   x = x,
   y = y,
   R_init = R0,
-  F = Fx,
-  G = Gy
+  Fx = Fx,
+  Gy = Gy
 )
 
-print("Estimated parameters only from marginals:")
-print("Fx params:")
+cat("Estimated parameters only from marginals:\n")
+cat("Fx params:\n")
 print(Fx$params)
-print("Gy params:")
+cat("Gy params:\n")
 print(Gy$params)
 
-print("Estimated parameters with joint copula:")
-print("Fx params:")
+cat("\nEstimated parameters with joint copula:\n")
+cat("Fx params:\n")
 print(result$params1)
-print("Gy params:")
+cat("Gy params:\n")
 print(result$params2)
 
 Rhat <- result$R

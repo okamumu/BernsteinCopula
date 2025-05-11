@@ -1,12 +1,11 @@
 ---
-
 title: "Estimating a Bernstein Copula from Multivariate Normal Data"
-output: rmarkdown::html\_vignette
+output: rmarkdown::html_vignette
 vignette: >
-%\VignetteIndexEntry{BernsteinCopula: Estimation from Multivariate Normal}
-%\VignetteEngine{knitr::rmarkdown}
-\usepackage\[utf8]{inputenc}
-----------------------------
+  %\VignetteIndexEntry{BernsteinCopula: Estimation from Multivariate Normal}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
