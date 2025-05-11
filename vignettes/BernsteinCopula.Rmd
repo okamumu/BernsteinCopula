@@ -96,6 +96,10 @@ Z <- bernstein_joint_pdf_grid(xg, yg, result$R, Fx, Gy)
 df_data <- data.frame(x = x, y = y)
 plot_contour(xg, yg, Z,
              title = "Estimated Joint Density with Data",
+             xlabel = "x", ylabel = "y")
+
+plot_contour(xg, yg, Z, filled=FALSE,
+             title = "Estimated Joint Density with Data",
              xlabel = "x", ylabel = "y",
              points = df_data)
 ```

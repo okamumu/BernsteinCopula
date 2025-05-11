@@ -53,6 +53,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dbinom_loader
+NumericVector dbinom_loader(int n, double p);
+RcppExport SEXP _BernsteinCopula_dbinom_loader(SEXP nSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbinom_loader(n, p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbinom_loader_inplace
+void dbinom_loader_inplace(int n, double p, NumericVector& P);
+RcppExport SEXP _BernsteinCopula_dbinom_loader_inplace(SEXP nSEXP, SEXP pSEXP, SEXP PSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type P(PSEXP);
+    dbinom_loader_inplace(n, p, P);
+    return R_NilValue;
+END_RCPP
+}
 // dou_em_mstep
 arma::mat dou_em_mstep(const arma::mat& tau_bar, int maxiter, double tol);
 RcppExport SEXP _BernsteinCopula_dou_em_mstep(SEXP tau_barSEXP, SEXP maxiterSEXP, SEXP tolSEXP) {
@@ -84,6 +108,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BernsteinCopula_bernstein_copula_pdf", (DL_FUNC) &_BernsteinCopula_bernstein_copula_pdf, 3},
     {"_BernsteinCopula_bernstein_emloop", (DL_FUNC) &_BernsteinCopula_bernstein_emloop, 5},
     {"_BernsteinCopula_bernstein_em_estep", (DL_FUNC) &_BernsteinCopula_bernstein_em_estep, 4},
+    {"_BernsteinCopula_dbinom_loader", (DL_FUNC) &_BernsteinCopula_dbinom_loader, 2},
+    {"_BernsteinCopula_dbinom_loader_inplace", (DL_FUNC) &_BernsteinCopula_dbinom_loader_inplace, 3},
     {"_BernsteinCopula_dou_em_mstep", (DL_FUNC) &_BernsteinCopula_dou_em_mstep, 3},
     {"_BernsteinCopula_sinkhorn_scaling", (DL_FUNC) &_BernsteinCopula_sinkhorn_scaling, 3},
     {NULL, NULL, 0}

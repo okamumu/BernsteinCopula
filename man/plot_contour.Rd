@@ -8,12 +8,13 @@ plot_contour(
   x,
   y,
   z,
-  filled = FALSE,
+  filled = TRUE,
   title = "Contour Plot",
   xlabel = "x",
   ylabel = "y",
   xlim = NULL,
   ylim = NULL,
+  points = NULL,
   ...
 )
 }
@@ -24,7 +25,7 @@ plot_contour(
 
 \item{z}{Matrix of z values. Dimensions must match length(x) × length(y).}
 
-\item{filled}{Logical. If TRUE, use filled contour (`geom_contour_filled`). Default FALSE.}
+\item{filled}{Logical. If TRUE, use filled contour (`geom_contour_filled`). Default TRUE.}
 
 \item{title}{Character. Plot title. Default: "Contour Plot".}
 
@@ -32,22 +33,16 @@ plot_contour(
 
 \item{ylabel}{Character. Label for y axis. Default: "y".}
 
-\item{xlim}{Numeric vector of length 2, giving x axis limits. Default NULL (auto).}
+\item{xlim, }{ylim Axis limits. Default NULL.}
 
-\item{ylim}{Numeric vector of length 2, giving y axis limits. Default NULL (auto).}
+\item{points}{Optional data frame with columns `x` and `y` to overlay on the plot.}
 
 \item{...}{Additional arguments passed to the ggplot2 layer.}
 }
 \value{
-A ggplot object with the contour plot.
+A ggplot object.
 }
 \description{
-Creates a contour or filled contour plot using ggplot2 from grid data (like base R's contour).
-}
-\examples{
-x <- seq(-3, 3, length.out = 100)
-y <- seq(-3, 3, length.out = 100)
-z <- outer(x, y, function(x, y) dnorm(x) * dnorm(y))
-plot_contour(x, y, z, xlim = c(-1, 1), ylim = c(-2, 2),
-                title = "Zoomed PDF", xlabel = "X", ylabel = "Y")
+Creates a contour or filled contour plot using ggplot2 from grid data (like base R's contour),
+with optional overlay of points.
 }
