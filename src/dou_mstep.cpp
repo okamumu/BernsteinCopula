@@ -22,7 +22,7 @@ double bisection(std::function<double(double)> f, double a, double b, double tol
 }
 
 // [[Rcpp::export]]
-arma::mat dou_em_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1e-10) {
+arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1e-10) {
   int m = tau_bar.n_rows;
   int n = tau_bar.n_cols;
 

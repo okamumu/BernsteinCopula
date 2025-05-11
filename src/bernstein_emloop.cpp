@@ -3,8 +3,8 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-double bernstein_em_estep(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau);
-arma::mat dou_em_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1e-10);
+double bernstein_estep(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau);
+arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1e-10);
 arma::mat sinkhorn_scaling(const arma::mat& W, int maxiter = 1000, double tol = 1e-10);
 
 // [[Rcpp::export]]
@@ -35,9 +35,9 @@ List bernstein_emloop(const arma::vec& u,
     double relerror;
     while (1) {
       tau_bar = tau_bar_init;
-      llf = bernstein_em_estep(u, v, R, tau_bar);
+      llf = bernstein_estep(u, v, R, tau_bar);
       if (mstep_method == "dou") {
-        R = dou_em_mstep(tau_bar, mstep_maxiter, mstep_abstol);
+        R = dou_mstep(tau_bar, mstep_maxiter, mstep_abstol);
       } else if (mstep_method == "sinkhorn") {
         R = sinkhorn_scaling(tau_bar, mstep_maxiter, mstep_abstol);
       } else {

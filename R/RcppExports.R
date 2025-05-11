@@ -9,8 +9,12 @@ bernstein_emloop <- function(u, v, R_init, tau_bar_init, options) {
     .Call(`_BernsteinCopula_bernstein_emloop`, u, v, R_init, tau_bar_init, options)
 }
 
-bernstein_em_estep <- function(u, v, R, tau) {
-    .Call(`_BernsteinCopula_bernstein_em_estep`, u, v, R, tau)
+bernstein_estep <- function(u, v, R, tau) {
+    .Call(`_BernsteinCopula_bernstein_estep`, u, v, R, tau)
+}
+
+bernstein_estep_with_weight <- function(u, v, R, tau, ew) {
+    .Call(`_BernsteinCopula_bernstein_estep_with_weight`, u, v, R, tau, ew)
 }
 
 dbinom_loader <- function(n, p) {
@@ -21,8 +25,8 @@ dbinom_loader_inplace <- function(n, p, P) {
     invisible(.Call(`_BernsteinCopula_dbinom_loader_inplace`, n, p, P))
 }
 
-dou_em_mstep <- function(tau_bar, maxiter = 1000L, tol = 1e-10) {
-    .Call(`_BernsteinCopula_dou_em_mstep`, tau_bar, maxiter, tol)
+dou_mstep <- function(tau_bar, maxiter = 1000L, tol = 1e-10) {
+    .Call(`_BernsteinCopula_dou_mstep`, tau_bar, maxiter, tol)
 }
 
 sinkhorn_scaling <- function(W, maxiter = 1000L, tol = 1e-10) {

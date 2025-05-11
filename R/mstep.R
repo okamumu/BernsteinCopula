@@ -18,5 +18,5 @@
 #' R <- dou_em_mstep(tau)
 #' sum(R)  # should be approximately 1
 dou_em_mstep <- function(tau_bar, maxiter = 1000, tol = 1e-10) {
-  .Call(`_BernsteinCopula_dou_em_mstep`, tau_bar, maxiter, tol)
+  .Call(`_BernsteinCopula_dou_mstep`, tau_bar, maxiter, tol)
 }

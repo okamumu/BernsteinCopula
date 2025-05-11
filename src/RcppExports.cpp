@@ -39,9 +39,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// bernstein_em_estep
-double bernstein_em_estep(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau);
-RcppExport SEXP _BernsteinCopula_bernstein_em_estep(SEXP uSEXP, SEXP vSEXP, SEXP RSEXP, SEXP tauSEXP) {
+// bernstein_estep
+double bernstein_estep(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau);
+RcppExport SEXP _BernsteinCopula_bernstein_estep(SEXP uSEXP, SEXP vSEXP, SEXP RSEXP, SEXP tauSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,7 +49,22 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type v(vSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type R(RSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type tau(tauSEXP);
-    rcpp_result_gen = Rcpp::wrap(bernstein_em_estep(u, v, R, tau));
+    rcpp_result_gen = Rcpp::wrap(bernstein_estep(u, v, R, tau));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bernstein_estep_with_weight
+double bernstein_estep_with_weight(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau, arma::vec& ew);
+RcppExport SEXP _BernsteinCopula_bernstein_estep_with_weight(SEXP uSEXP, SEXP vSEXP, SEXP RSEXP, SEXP tauSEXP, SEXP ewSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type u(uSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type v(vSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type R(RSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type ew(ewSEXP);
+    rcpp_result_gen = Rcpp::wrap(bernstein_estep_with_weight(u, v, R, tau, ew));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -77,16 +92,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// dou_em_mstep
-arma::mat dou_em_mstep(const arma::mat& tau_bar, int maxiter, double tol);
-RcppExport SEXP _BernsteinCopula_dou_em_mstep(SEXP tau_barSEXP, SEXP maxiterSEXP, SEXP tolSEXP) {
+// dou_mstep
+arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter, double tol);
+RcppExport SEXP _BernsteinCopula_dou_mstep(SEXP tau_barSEXP, SEXP maxiterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type tau_bar(tau_barSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(dou_em_mstep(tau_bar, maxiter, tol));
+    rcpp_result_gen = Rcpp::wrap(dou_mstep(tau_bar, maxiter, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -107,10 +122,11 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_BernsteinCopula_bernstein_copula_pdf", (DL_FUNC) &_BernsteinCopula_bernstein_copula_pdf, 3},
     {"_BernsteinCopula_bernstein_emloop", (DL_FUNC) &_BernsteinCopula_bernstein_emloop, 5},
-    {"_BernsteinCopula_bernstein_em_estep", (DL_FUNC) &_BernsteinCopula_bernstein_em_estep, 4},
+    {"_BernsteinCopula_bernstein_estep", (DL_FUNC) &_BernsteinCopula_bernstein_estep, 4},
+    {"_BernsteinCopula_bernstein_estep_with_weight", (DL_FUNC) &_BernsteinCopula_bernstein_estep_with_weight, 5},
     {"_BernsteinCopula_dbinom_loader", (DL_FUNC) &_BernsteinCopula_dbinom_loader, 2},
     {"_BernsteinCopula_dbinom_loader_inplace", (DL_FUNC) &_BernsteinCopula_dbinom_loader_inplace, 3},
-    {"_BernsteinCopula_dou_em_mstep", (DL_FUNC) &_BernsteinCopula_dou_em_mstep, 3},
+    {"_BernsteinCopula_dou_mstep", (DL_FUNC) &_BernsteinCopula_dou_mstep, 3},
     {"_BernsteinCopula_sinkhorn_scaling", (DL_FUNC) &_BernsteinCopula_sinkhorn_scaling, 3},
     {NULL, NULL, 0}
 };
