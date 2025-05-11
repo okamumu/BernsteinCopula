@@ -1,0 +1,124 @@
+---
+
+title: "Estimating a Bernstein Copula from Multivariate Normal Data"
+output: rmarkdown::html\_vignette
+vignette: >
+%\VignetteIndexEntry{BernsteinCopula: Estimation from Multivariate Normal}
+%\VignetteEngine{knitr::rmarkdown}
+\usepackage\[utf8]{inputenc}
+----------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
+library(BernsteinCopula)
+library(MASS)
+library(ggplot2)
+```
+
+## Introduction
+
+In this vignette, we demonstrate how to estimate a Bernstein copula from samples drawn from a bivariate normal distribution. We jointly estimate the copula structure and marginal distributions via the EM algorithm.
+
+## Simulating Data from a Bivariate Normal
+
+```{r simulate-data}
+set.seed(123)
+Sigma <- matrix(c(1, 0.7, 0.7, 1), 2, 2)
+data <- MASS::mvrnorm(n = 200, mu = c(0, 0), Sigma = Sigma)
+x <- exp(data[, 1])
+y <- exp(data[, 2])
+```
+
+## Visualizing the Data
+
+```{r plot-data}
+df <- data.frame(x = x, y = y)
+ggplot(df, aes(x = x, y = y)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Bivariate Normal Data", x = "X", y = "Y") +
+  theme_minimal()
+```
+
+## Initializing Marginal Models
+
+We use `normaldist()` to create EM-aware marginal distributions for both `x` and `y`.
+
+```{r marginal-models}
+Fx <- normaldist(mean = mean(x), sd = sd(x))
+Gy <- normaldist(mean = mean(y), sd = sd(y))
+```
+
+## EM Estimation with Marginals and Copula
+
+We estimate the Bernstein copula and marginal parameters jointly using `emloop_with_F()`.
+
+```{r emloop-joint}
+m <- 4
+n <- 4
+R0 <- matrix(1 / (m * n), m, n)
+
+result <- emloop_with_F(
+  x = x,
+  y = y,
+  R_init = R0,
+  F = Fx,
+  G = Gy
+)
+
+print("Estimated parameters only from marginals:")
+print("Fx params:")
+print(Fx$params)
+print("Gy params:")
+print(Gy$params)
+
+print("Estimated parameters with joint copula:")
+print("Fx params:")
+print(result$params1)
+print("Gy params:")
+print(result$params2)
+
+Rhat <- result$R
+Fx$params <- result$params1
+Gy$params <- result$params2
+```
+
+## Visualizing Updated Marginals
+
+```{r updated-marginals}
+xgrid <- seq(min(x) - 2, max(x) + 2, length.out = 200)
+
+df_fx <- data.frame(x = xgrid, density = Fx$pdf(xgrid))
+ggplot(df_fx, aes(x = x, y = density)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Updated Marginal of X", x = "X", y = "Density") +
+  theme_minimal()
+
+df_gy <- data.frame(y = xgrid, density = Gy$pdf(xgrid))
+ggplot(df_gy, aes(x = y, y = density)) +
+  geom_line(color = "darkgreen") +
+  labs(title = "Updated Marginal of Y", x = "Y", y = "Density") +
+  theme_minimal()
+```
+
+## Visualizing the Estimated Copula Density
+
+```{r plot-copula-density}
+xg <- seq(min(x), max(x), length.out = 50)
+yg <- seq(min(y), max(y), length.out = 50)
+Z <- bernstein_joint_pdf_grid(xg, yg, Rhat, Fx, Gy)
+
+df_data <- data.frame(x = x, y = y)
+
+plot_contour(xg, yg, Z,
+             title = "Estimated Joint Density (filled)",
+             xlabel = "x", ylabel = "y")
+
+plot_contour(xg, yg, Z, filled = FALSE,
+             title = "Estimated Joint Density with Data",
+             xlabel = "x", ylabel = "y",
+             points = df_data)
+```
+
+## Conclusion
+
+We demonstrated how to estimate a Bernstein copula jointly with marginal distributions using the `emloop_with_F()` function. This approach captures both dependence and marginal behavior from data using the EM algorithm.

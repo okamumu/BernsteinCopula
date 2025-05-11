@@ -32,6 +32,8 @@ ones (e.g., normal) and custom distributions.
 \item{\code{cdf_func}}{Function. CDF function.}
 
 \item{\code{ccdf_func}}{Function. CCDF function.}
+
+\item{\code{emstep_func}}{Function. EM step function for parameter estimation.}
 }
 \if{html}{\out{</div>}}
 }
@@ -42,6 +44,7 @@ ones (e.g., normal) and custom distributions.
 \item \href{#method-MarginalDistribution-pdf}{\code{MarginalDistribution$pdf()}}
 \item \href{#method-MarginalDistribution-cdf}{\code{MarginalDistribution$cdf()}}
 \item \href{#method-MarginalDistribution-ccdf}{\code{MarginalDistribution$ccdf()}}
+\item \href{#method-MarginalDistribution-emstep}{\code{MarginalDistribution$emstep()}}
 \item \href{#method-MarginalDistribution-print}{\code{MarginalDistribution$print()}}
 \item \href{#method-MarginalDistribution-clone}{\code{MarginalDistribution$clone()}}
 }
@@ -57,7 +60,8 @@ Initialize a MarginalDistribution object.
   pdf = NULL,
   cdf = NULL,
   ccdf = NULL,
-  params = list()
+  params = list(),
+  emstep_func = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -73,6 +77,8 @@ Initialize a MarginalDistribution object.
 \item{\code{ccdf}}{Function. Custom CCDF function.}
 
 \item{\code{params}}{Named list. Parameters for the distribution.}
+
+\item{\code{emstep_func}}{Function. EM step function for parameter estimation.}
 }
 \if{html}{\out{</div>}}
 }
@@ -138,6 +144,30 @@ Evaluate the CCDF at point(s) x.
 }
 \subsection{Returns}{
 Numeric vector. CCDF
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MarginalDistribution-emstep"></a>}}
+\if{latex}{\out{\hypertarget{method-MarginalDistribution-emstep}{}}}
+\subsection{Method \code{emstep()}}{
+Exec the EM step function.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{MarginalDistribution$emstep(x, w1, w2)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{Numeric vector. Data points.}
+
+\item{\code{w1}}{Numeric vector. Weights for the data points.}
+
+\item{\code{w2}}{Numeric vector. Weights for the data points.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Named list. Updated parameters.
 }
 }
 \if{html}{\out{<hr>}}

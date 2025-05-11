@@ -22,12 +22,12 @@ arma::mat sinkhorn_scaling(const arma::mat& W, int maxiter = 1000, double tol = 
 
     arma::vec Wc = W * c;
     for (int i = 0; i < m; ++i) {
-      if (Wc[i] > 0) r[i] = target_row[i] / Wc[i];
+      if (Wc(i) > 0) r(i) = target_row(i) / Wc(i);
     }
 
     arma::vec WTr = W.t() * r;
     for (int j = 0; j < n; ++j) {
-      if (WTr[j] > 0) c[j] = target_col[j] / WTr[j];
+      if (WTr(j) > 0) c(j) = target_col(j) / WTr(j);
     }
 
     if (arma::norm(r - r_old, "inf") < tol && arma::norm(c - c_old, "inf") < tol) {

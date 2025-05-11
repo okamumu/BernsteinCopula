@@ -18,7 +18,7 @@ double bernstein_copula_pdf(double u, double v,
   for (int k = 0; k < m; ++k) {
     for (int l = 0; l < n; ++l) {
       double r_kl = R(k, l);
-      pdf += r_kl * b_k[k] * b_l[l];
+      pdf += r_kl * b_k(k) * b_l(l);
     }
   }
 

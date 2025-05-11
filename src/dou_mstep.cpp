@@ -40,10 +40,10 @@ arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1
       auto f_lambda = [&](double lam) {
         double sum = 0.0;
         for (int k = 0; k < m; ++k)
-          sum += tau_bar(k, l) / (mu[k] + lam);
+          sum += tau_bar(k, l) / (mu(k) + lam);
         return sum - 1.0 / n;
       };
-      lambda[l] = bisection(f_lambda, -min_mu + 1e-8, 1e5, tol, 100);
+      lambda(l) = bisection(f_lambda, -min_mu + 1e-8, 1e5, tol, 100);
     }
 
     // M2: update mu
@@ -52,7 +52,7 @@ arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1
       auto f_mu = [&](double muk) {
         double sum = 0.0;
         for (int l = 0; l < n; ++l)
-          sum += tau_bar(k, l) / (muk + lambda[l]);
+          sum += tau_bar(k, l) / (muk + lambda(l));
         return sum - 1.0 / m;
       };
       mu_new[k] = bisection(f_mu, -min_lambda + 1e-8, 1e5, tol, 100);
@@ -71,7 +71,7 @@ arma::mat dou_mstep(const arma::mat& tau_bar, int maxiter = 1000, double tol = 1
   arma::mat R(m, n);
   for (int k = 0; k < m; ++k)
     for (int l = 0; l < n; ++l)
-      R(k, l) = tau_bar(k, l) / (mu[k] + lambda[l]);
+      R(k, l) = tau_bar(k, l) / (mu(k) + lambda(l));
 
   return R / arma::accu(R);
 }

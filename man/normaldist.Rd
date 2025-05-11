@@ -12,16 +12,9 @@ normaldist(mean = 0, sd = 1)
 \item{sd}{Numeric. Standard deviation of the normal distribution (default is 1).}
 }
 \value{
-An object of class \code{MarginalDistribution} with appropriate \code{pdf}, \code{cdf}, and \code{ccdf} methods.
+A \code{MarginalDistribution} R6 object with fields \code{params}, \code{pdf}, \code{cdf}, \code{ccdf}, and \code{emstep_func}.
 }
 \description{
 Creates a \code{MarginalDistribution} object for a normal (Gaussian) distribution,
 with specified mean and standard deviation.
-}
-\examples{
-fx <- normaldist(mean = 0, sd = 1)
-fx$pdf(0)
-fx$cdf(0)
-fx$ccdf(0)
-
 }

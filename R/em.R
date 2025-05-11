@@ -65,3 +65,138 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 
   bernstein_emloop(u, v, R_init, prior, opts)
 }
+
+#' EM Algorithm for Bernstein Copula with Flexible Marginals (via R6)
+#'
+#' Runs the EM algorithm to estimate a Bernstein copula and marginal distributions jointly.
+#' Marginals are specified via R6 objects `F` and `G`, each of which should provide:
+#' - `params`: named list of initial parameters,
+#' - `pdf_func(x, params)`: function to evaluate the marginal density,
+#' - `cdf_func(x, params)`: function to evaluate the marginal CDF,
+#' - `emstep_func(x, w1, w2, params)`: function to update the parameters in the M-step.
+#'
+#' @param x Numeric vector. Samples for variable X.
+#' @param y Numeric vector. Samples for variable Y.
+#' @param R_init Matrix. Initial copula weight matrix of size \eqn{m \times n}.
+#' @param prior Matrix or `NULL`. Prior weight matrix for tau-bar; defaults to a matrix of ones.
+#' @param F R6 object representing the marginal model for X. Must have fields and methods as described above.
+#' @param G R6 object representing the marginal model for Y. Must have fields and methods as described above.
+#' @param options List of algorithm options. Must contain:
+#'   \describe{
+#'     \item{maxiter}{Maximum number of EM iterations.}
+#'     \item{abstol}{Absolute tolerance for convergence.}
+#'     \item{reltol}{Relative tolerance for convergence.}
+#'     \item{mstep_maxiter}{Maximum number of M-step iterations (for copula update).}
+#'     \item{mstep_abstol}{Tolerance for M-step convergence.}
+#'     \item{mstep}{Character string, either `"dou"` or `"sinkhorn"` to choose M-step method.}
+#'     \item{verbose}{Logical. If `TRUE`, print progress during EM.}
+#'   }
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{R}{Estimated copula weight matrix.}
+#'   \item{params1}{Final parameters for the X marginal model.}
+#'   \item{params2}{Final parameters for the Y marginal model.}
+#'   \item{llf}{Final log-likelihood value.}
+#'   \item{converged}{Logical. Whether the algorithm converged.}
+#'   \item{iter}{Number of EM iterations completed.}
+#'   \item{abserror}{Final absolute error in log-likelihood.}
+#'   \item{relerror}{Final relative error in log-likelihood.}
+#' }
+#'
+#' @export
+#'
+#' @examples
+#' # See vignette or examples for full usage with R6 marginal models.
+emloop_with_F <- function(x, y, R_init, prior = NULL,
+  F, G, options = list()) {
+  stopifnot(is.matrix(R_init))
+  m <- nrow(R_init)
+  n <- ncol(R_init)
+  stopifnot(length(x) == length(y))
+
+  # default prior: ones
+  if (is.null(prior)) {
+    prior <- matrix(1.0, m, n)
+  } else {
+    stopifnot(all(dim(prior) == dim(R_init)))
+  }
+
+  # default prior: ones
+  if (is.null(prior)) {
+    prior <- matrix(1.0, m, n)
+  } else {
+    stopifnot(all(dim(prior) == dim(R_init)))
+  }
+
+  defaults <- list(
+    maxiter = 1000,
+    abstol = 1e-3,
+    reltol = 1e-6,
+    mstep_maxiter = 1000,
+    mstep_abstol = 1e-10,
+    mstep = "sinkhorn", # or "dou"
+    verbose = FALSE
+  )
+  opts <- modifyList(defaults, options)
+
+  N <- length(x)
+  exw1 <- numeric(N)
+  exw2 <- numeric(N)
+  eyw1 <- numeric(N)
+  eyw2 <- numeric(N)
+
+  R <- R_init
+  params1 <- F$params
+  params2 <- G$params
+  llf_old <- -Inf
+
+  converged <- FALSE
+  for (iter in seq_len(opts$maxiter)) {
+
+    tau_bar <- prior
+
+    du <- F$pdf_func(x, params1)
+    dv <- G$pdf_func(y, params2)
+    u  <- F$cdf_func(x, params1)
+    v  <- G$cdf_func(y, params2)
+
+    llf <- bernstein_estep_with_weight(u, v, du, dv, R, tau_bar, exw1, exw2, eyw1, eyw2)
+
+    if (opts$mstep == "dou") {
+      R <- dou_mstep(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
+    } else if (opts$mstep == "sinkhorn") {
+      R <- sinkhorn_scaling(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
+    } else {
+      stop("Unknown mstep method: ", opts$mstep)
+    }
+
+    params1 <- F$emstep_func(x, exw1, exw2, params1)
+    params2 <- G$emstep_func(y, eyw1, eyw2, params2)
+
+    abserror <- abs(llf - llf_old)
+    relerror <- abs(llf - llf_old) / (abs(llf_old) + 1e-10)
+
+    if (opts$verbose) {
+      cat(sprintf("iter: %d, loglik: %.6f, abs: %.2e, rel: %.2e\n", iter, llf, abserror, relerror))
+    }
+
+    if (abserror < opts$abstol && relerror < opts$reltol) {
+      converged <- TRUE
+      break
+    }
+
+    llf_old <- llf
+  }
+
+  list(
+    R = R,
+    params1 = params1,
+    params2 = params2,
+    llf = llf,
+    converged = converged,
+    iter = iter,
+    abserror = abserror,
+    relerror = relerror
+  )
+}

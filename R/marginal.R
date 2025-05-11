@@ -25,11 +25,13 @@ MarginalDistribution <-
       #' @field pdf_func Function. PDF function.
       #' @field cdf_func Function. CDF function.
       #' @field ccdf_func Function. CCDF function.
+      #' @field emstep_func Function. EM step function for parameter estimation.
       name = NULL,
       params = list(),
       pdf_func = NULL,
       cdf_func = NULL,
       ccdf_func = NULL,
+      emstep_func = NULL,
 
       #' @description
       #' Initialize a MarginalDistribution object.
@@ -38,13 +40,16 @@ MarginalDistribution <-
       #' @param cdf Function. Custom CDF function.
       #' @param ccdf Function. Custom CCDF function.
       #' @param params Named list. Parameters for the distribution.
+      #' @param emstep_func Function. EM step function for parameter estimation.
       #' @return A MarginalDistribution object.
-      initialize = function(name = NULL, pdf = NULL, cdf = NULL, ccdf = NULL, params = list()) {
+      initialize = function(name = NULL, pdf = NULL, cdf = NULL, ccdf = NULL, params = list(), 
+                            emstep_func = NULL) {
         self$name <- name
         self$params <- params
         self$pdf_func <- pdf
         self$cdf_func <- cdf
         self$ccdf_func <- ccdf
+        self$emstep_func <- emstep_func
       },
 
       #' @description
@@ -66,6 +71,19 @@ MarginalDistribution <-
       ccdf = function(x) self$ccdf_func(x, self$params),
 
       #' @description
+      #' Exec the EM step function.
+      #' @param x Numeric vector. Data points.
+      #' @param w1 Numeric vector. Weights for the data points.
+      #' @param w2 Numeric vector. Weights for the data points.
+      #' @return Named list. Updated parameters.
+      emstep = function(x, w1, w2) {
+        if (is.null(self$emstep_func)) {
+          stop("EM step function is not defined for this distribution.")
+        }
+        self$emstep_func(x, w1, w2, self$params)
+      },
+
+      #' @description
       #' Print the distribution name and parameters.
       #' @param ... Additional arguments (not used).
       #' @return NULL
@@ -84,13 +102,7 @@ MarginalDistribution <-
 #' @param mean Numeric. Mean of the normal distribution (default is 0).
 #' @param sd Numeric. Standard deviation of the normal distribution (default is 1).
 #'
-#' @return An object of class \code{MarginalDistribution} with appropriate \code{pdf}, \code{cdf}, and \code{ccdf} methods.
-#'
-#' @examples
-#' fx <- normaldist(mean = 0, sd = 1)
-#' fx$pdf(0)
-#' fx$cdf(0)
-#' fx$ccdf(0)
+#' @return A \code{MarginalDistribution} R6 object with fields \code{params}, \code{pdf}, \code{cdf}, \code{ccdf}, and \code{emstep_func}.
 #'
 #' @export
 normaldist <- function(mean = 0, sd = 1) {
@@ -99,7 +111,8 @@ normaldist <- function(mean = 0, sd = 1) {
     pdf = function(x, params) dnorm(x, mean = params$mean, sd = params$sd),
     cdf = function(x, params) pnorm(x, mean = params$mean, sd = params$sd, lower.tail = TRUE),
     ccdf = function(x, params) pnorm(x, mean = params$mean, sd = params$sd, lower.tail = FALSE),
-    params = list(mean = mean, sd = sd)
+    params = list(mean = mean, sd = sd),
+    emstep_func = emstep_normal
   )
 }
 
@@ -125,6 +138,7 @@ exponentialdist <- function(rate = 1) {
     pdf = function(x, params) dexp(x, rate = params$rate),
     cdf = function(x, params) pexp(x, rate = params$rate, lower.tail = TRUE),
     ccdf = function(x, params) pexp(x, rate = params$rate, lower.tail = FALSE),
-    params = list(rate = rate)
+    params = list(rate = rate),
+    emstep_func = emstep_exponential
   )
 }
