@@ -17,7 +17,7 @@ To install the package, clone the repository and build it using R:
 # Install devtools if not already installed
 install.packages("devtools")
 
-devtools::install("path/to/BernsteinCopula")
+devtools::install_github("okamumu/BernsteinCopula")
 ```
 
 ## Usage
