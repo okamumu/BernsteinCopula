@@ -37,9 +37,9 @@
 #' u <- runif(100)
 #' v <- runif(100)
 #' R0 <- matrix(1/9, 3, 3)
-#' result <- emloop(u, v, R0)
+#' result <- fit.copula(u, v, R0)
 #' result$R
-emloop <- function(u, v, R_init, prior = NULL, options = list()) {
+fit.copula <- function(u, v, R_init, prior = NULL, options = list()) {
   stopifnot(is.matrix(R_init))
   m <- nrow(R_init)
   n <- ncol(R_init)
@@ -53,10 +53,10 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
   }
 
   defaults <- list(
-    maxiter = 1000,
+    maxiter = 2000,
     abstol = 1e-3,
     reltol = 1e-6,
-    mstep_maxiter = 1000,
+    mstep_maxiter = 2000,
     mstep_abstol = 1e-10,
     mstep = "sinkhorn", # or "dou"
     verbose = FALSE
@@ -86,6 +86,8 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 #'     \item{maxiter}{Maximum number of EM iterations.}
 #'     \item{abstol}{Absolute tolerance for convergence.}
 #'     \item{reltol}{Relative tolerance for convergence.}
+#'     \item{joint.est}{Logical. If `TRUE`, update marginal parameters in the M-step.}
+#'     \item{steps}{Number of steps for progress output.}
 #'     \item{mstep_maxiter}{Maximum number of M-step iterations (for copula update).}
 #'     \item{mstep_abstol}{Tolerance for M-step convergence.}
 #'     \item{mstep}{Character string, either `"dou"` or `"sinkhorn"` to choose M-step method.}
@@ -108,7 +110,7 @@ emloop <- function(u, v, R_init, prior = NULL, options = list()) {
 #'
 #' @examples
 #' # See vignette or examples for full usage with R6 marginal models.
-emloop_with_F <- function(x, y, R_init, prior = NULL,
+fit.copula.joint <- function(x, y, R_init, prior = NULL,
   Fx, Gy, options = list()) {
   stopifnot(is.matrix(R_init))
   m <- nrow(R_init)
@@ -122,21 +124,16 @@ emloop_with_F <- function(x, y, R_init, prior = NULL,
     stopifnot(all(dim(prior) == dim(R_init)))
   }
 
-  # default prior: ones
-  if (is.null(prior)) {
-    prior <- matrix(1.0, m, n)
-  } else {
-    stopifnot(all(dim(prior) == dim(R_init)))
-  }
-
   defaults <- list(
-    maxiter = 1000,
+    maxiter = 2000,
     abstol = 1e-3,
     reltol = 1e-6,
-    mstep_maxiter = 1000,
+    joint.est = TRUE,
+    steps = 100,
+    mstep_maxiter = 2000,
     mstep_abstol = 1e-10,
     mstep = "sinkhorn", # or "dou"
-    verbose = FALSE
+    verbose = TRUE
   )
   opts <- modifyList(defaults, options)
 
@@ -171,13 +168,19 @@ emloop_with_F <- function(x, y, R_init, prior = NULL,
       stop("Unknown mstep method: ", opts$mstep)
     }
 
-    params1 <- Fx$emstep_func(x, exw1, exw2, params1)
-    params2 <- Gy$emstep_func(y, eyw1, eyw2, params2)
+    if (opts$joint.est == TRUE && !is.null(Fx$emstep_func) && !is.null(Gy$emstep_func)) {
+      # Update marginal parameters
+      params1 <- Fx$emstep_func(x, exw1, exw2, params1)
+      params2 <- Gy$emstep_func(y, eyw1, eyw2, params2)
+    }
 
+    if (llf - llf_old < 0) {
+      warning("Log-likelihood decreased: ", llf, " < ", llf_old)
+    }
     abserror <- abs(llf - llf_old)
     relerror <- abs(llf - llf_old) / (abs(llf_old) + 1e-10)
 
-    if (opts$verbose) {
+    if (opts$verbose && iter %% opts$steps == 0) {
       cat(sprintf("iter: %d, loglik: %.6f, abs: %.2e, rel: %.2e\n", iter, llf, abserror, relerror))
     }
 

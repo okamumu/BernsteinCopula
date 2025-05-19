@@ -79,7 +79,7 @@ We initialize a uniform matrix for the copula weights:
 m <- 4
 n <- 4
 R0 <- matrix(1/(m * n), m, n)
-result <- emloop(u, v, R_init = R0)
+result <- fit.copula(u, v, R_init = R0)
 result$R
 ```
 
@@ -105,4 +105,5 @@ plot_contour(xg, yg, Z, filled=FALSE,
 
 ## Conclusion
 
-We have shown how to estimate a Bernstein copula from bivariate normal data using the EM algorithm. The resulting copula captures the dependence structure and can be visualized with estimated joint density plots.
+We have shown how to estimate a Bernstein copula from bivariate normal data using the EM algorithm.
+The resulting copula captures the dependence structure and can be visualized with estimated joint density plots.

@@ -1,7 +1,7 @@
 Package: BernsteinCopula
 Type: Package
 Title: Estimation of Bernstein Copula via EM Algorithm
-Version: 0.1.0
+Version: 0.1.0.9000
 Author: Hiroyuki Okamura
 Maintainer: Hiroyuki Okamura <okamu@hiroshima-u.ac.jp>
 Description: Tools for estimating Bernstein copulas using the EM algorithm based on order statistics.
@@ -13,4 +13,6 @@ Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
 Imports: Rcpp,
-    ggplot2
+    ggplot2,
+    mapfit
+Remotes: okamumu/mapfit@interval

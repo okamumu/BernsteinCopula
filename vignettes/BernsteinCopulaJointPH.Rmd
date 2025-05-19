@@ -1,8 +1,8 @@
 ---
-title: "Estimating a Bernstein Copula and Marginals from Multivariate Normal Data"
+title: "Estimating a Bernstein Copula and PH Marginals from Multivariate Normal Data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BernsteinCopula: Estimation of Marginals from Multivariate Normal}
+  %\VignetteIndexEntry{BernsteinCopula: Estimation of PH Marginals from Multivariate Normal}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,6 +10,7 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
 library(BernsteinCopula)
+library(mapfit)
 library(MASS)
 library(ggplot2)
 ```
@@ -23,9 +24,9 @@ In this vignette, we demonstrate how to estimate a Bernstein copula from samples
 ```{r simulate-data}
 set.seed(123)
 Sigma <- matrix(c(1, 0.7, 0.7, 1), 2, 2)
-data <- MASS::mvrnorm(n = 200, mu = c(0, 0), Sigma = Sigma)
-x <- exp(data[, 1])
-y <- exp(data[, 2])
+data <- MASS::mvrnorm(n = 20, mu = c(5, 5), Sigma = Sigma)
+x <- data[, 1]
+y <- data[, 2]
 ```
 
 ## Visualizing the Data
@@ -40,11 +41,13 @@ ggplot(df, aes(x = x, y = y)) +
 
 ## Initializing Marginal Models
 
-We use `normaldist()` to create EM-aware marginal distributions for both `x` and `y`.
+We use `phdist()` to create EM-aware marginal distributions for both `x` and `y`.
 
 ```{r marginal-models}
-Fx <- normaldist(mean = mean(x), sd = sd(x))
-Gy <- normaldist(mean = mean(y), sd = sd(y))
+xres <- phfit.point(ph=cf1(10), x=x)
+Fx <- phdist(alpha = xres$model$alpha(), rate = xres$model$rate())
+yres <- phfit.point(ph=cf1(10), x=y)
+Gy <- phdist(alpha = yres$model$alpha(), rate = yres$model$rate())
 ```
 
 ## EM Estimation with Marginals and Copula
@@ -52,6 +55,12 @@ Gy <- normaldist(mean = mean(y), sd = sd(y))
 We estimate the Bernstein copula and marginal parameters jointly using `fit.copula.joint()`.
 
 ```{r emloop-joint}
+cat("Estimated parameters only from marginals:\n")
+cat("Fx params:\n")
+print(Fx$params)
+cat("Gy params:\n")
+print(Gy$params)
+
 m <- 4
 n <- 4
 R0 <- matrix(1 / (m * n), m, n)
@@ -61,14 +70,9 @@ result <- fit.copula.joint(
   y = y,
   R_init = R0,
   Fx = Fx,
-  Gy = Gy
+  Gy = Gy,
+  options=list(verbose=FALSE)
 )
-
-cat("Estimated parameters only from marginals:\n")
-cat("Fx params:\n")
-print(Fx$params)
-cat("Gy params:\n")
-print(Gy$params)
 
 cat("\nEstimated parameters with joint copula:\n")
 cat("Fx params:\n")
