@@ -202,16 +202,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// emstep_ph_build_interval_data_group
-List emstep_ph_build_interval_data_group(NumericVector x, NumericVector w1, NumericVector w2);
-RcppExport SEXP _BernsteinCopula_emstep_ph_build_interval_data_group(SEXP xSEXP, SEXP w1SEXP, SEXP w2SEXP) {
+// emstep_ph_build_group_data
+List emstep_ph_build_group_data(NumericVector x, NumericVector w1, NumericVector w2);
+RcppExport SEXP _BernsteinCopula_emstep_ph_build_group_data(SEXP xSEXP, SEXP w1SEXP, SEXP w2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type w1(w1SEXP);
     Rcpp::traits::input_parameter< NumericVector >::type w2(w2SEXP);
-    rcpp_result_gen = Rcpp::wrap(emstep_ph_build_interval_data_group(x, w1, w2));
+    rcpp_result_gen = Rcpp::wrap(emstep_ph_build_group_data(x, w1, w2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -243,7 +243,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BernsteinCopula_emstep_normal", (DL_FUNC) &_BernsteinCopula_emstep_normal, 4},
     {"_BernsteinCopula_emstep_normal_group", (DL_FUNC) &_BernsteinCopula_emstep_normal_group, 4},
     {"_BernsteinCopula_emstep_ph_build_interval_data", (DL_FUNC) &_BernsteinCopula_emstep_ph_build_interval_data, 3},
-    {"_BernsteinCopula_emstep_ph_build_interval_data_group", (DL_FUNC) &_BernsteinCopula_emstep_ph_build_interval_data_group, 3},
+    {"_BernsteinCopula_emstep_ph_build_group_data", (DL_FUNC) &_BernsteinCopula_emstep_ph_build_group_data, 3},
     {"_BernsteinCopula_sinkhorn_scaling", (DL_FUNC) &_BernsteinCopula_sinkhorn_scaling, 3},
     {NULL, NULL, 0}
 };

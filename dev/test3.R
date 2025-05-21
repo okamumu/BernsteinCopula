@@ -2,7 +2,7 @@ library(BernsteinCopula)
 library(MASS)
 library(copulaData)
 library(ggplot2)
-
+library(mapfit)
 
 # set.seed(123)
 # Sigma <- matrix(c(1, 0.7, 0.7, 1), 2, 2)
@@ -16,8 +16,13 @@ y <- NELS88$Reading
 
 data <- bincount2d(x, y, xbreaks = seq(0, 100, 10), ybreaks = seq(0, 100, 10))
 
-Fx <- normaldist(mean=mean(x), sd=sd(x))
-Gy <- normaldist(mean=mean(y), sd=sd(y))
+# Fx <- normaldist(mean=mean(x), sd=sd(x))
+# Gy <- normaldist(mean=mean(y), sd=sd(y))
+
+xres <- phfit.point(ph=cf1(5), x=x)
+yres <- phfit.point(ph=cf1(5), x=y)
+Fx <- phdist(alpha = xres$model$alpha(), rate = xres$model$rate())
+Gy <- phdist(alpha = yres$model$alpha(), rate = yres$model$rate())
 
 m <- 3
 n <- 3
@@ -25,7 +30,7 @@ R0 <- matrix(1/(m*n), m, n)
 
 opts <- list(
   verbose = TRUE,
-  steps = 20
+  steps = 10
 )
 
 result <- fit.copula.group.joint(data$xbreaks, data$ybreaks, data$counts, R_init=R0, Fx=Fx, Gy=Gy, options=opts)

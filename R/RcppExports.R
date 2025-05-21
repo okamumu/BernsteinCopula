@@ -53,8 +53,8 @@ emstep_ph_build_interval_data <- function(x, w1, w2) {
     .Call(`_BernsteinCopula_emstep_ph_build_interval_data`, x, w1, w2)
 }
 
-emstep_ph_build_interval_data_group <- function(x, w1, w2) {
-    .Call(`_BernsteinCopula_emstep_ph_build_interval_data_group`, x, w1, w2)
+emstep_ph_build_group_data <- function(x, w1, w2) {
+    .Call(`_BernsteinCopula_emstep_ph_build_group_data`, x, w1, w2)
 }
 
 sinkhorn_scaling <- function(W, maxiter = 1000L, tol = 1e-10) {

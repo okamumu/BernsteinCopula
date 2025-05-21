@@ -36,7 +36,7 @@ List emstep_ph_build_interval_data(NumericVector x, NumericVector w1, NumericVec
 }
 
 // [[Rcpp::export]]
-List emstep_ph_build_interval_data_group(NumericVector x, NumericVector w1, NumericVector w2) {
+List emstep_ph_build_group_data(NumericVector x, NumericVector w1, NumericVector w2) {
   int n = x.size();
   List data(2 * n);
   NumericVector weights(2 * n);
