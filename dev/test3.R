@@ -14,13 +14,13 @@ data("NELS88")
 x <- NELS88$Math
 y <- NELS88$Reading
 
-data <- bincount2d(x, y, xbreaks = seq(0, 100, 10), ybreaks = seq(0, 100, 10))
+data <- bincount2d(x, y, xbreaks = seq(0, 100, length.out=10), ybreaks = seq(0, 100, length.out=10))
 
 # Fx <- normaldist(mean=mean(x), sd=sd(x))
 # Gy <- normaldist(mean=mean(y), sd=sd(y))
 
-xres <- phfit.point(ph=cf1(5), x=x)
-yres <- phfit.point(ph=cf1(5), x=y)
+xres <- phfit.point(ph=cf1(10), x=x)
+yres <- phfit.point(ph=cf1(10), x=y)
 Fx <- phdist(alpha = xres$model$alpha(), rate = xres$model$rate())
 Gy <- phdist(alpha = yres$model$alpha(), rate = yres$model$rate())
 
