@@ -45,13 +45,11 @@ phdist <- function(alpha = c(0.5, 0.5), rate = c(1.0, 1.0)) {
     params = list(alpha = alpha, rate = rate),
     emstep_func = function(x, w1, w2, params) {
       res <- emstep_ph_build_interval_data(x, w1, w2)
-      b <- res$weights != 0.0
-      mapfit::Remstep_cf1_interval(res$data[b], res$weights[b], params)
+      mapfit::Remstep_cf1_interval(res$data, res$weights, params)
     },
     emstep_func_group = function(x, w1, w2, params) {
       res <- emstep_ph_build_group_data(x, w1, w2)
-      b <- res$weights != 0.0
-      mapfit::Remstep_cf1_interval(res$data[b], res$weights[b], params)
+      mapfit::Remstep_cf1_interval(res$data, res$weights, params)
     }
   )
 }
