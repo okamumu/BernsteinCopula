@@ -5,16 +5,20 @@ bernstein_copula_pdf <- function(u, v, R) {
     .Call(`_BernsteinCopula_bernstein_copula_pdf`, u, v, R)
 }
 
-bernstein_emloop <- function(u, v, R_init, tau_bar_init, options) {
-    .Call(`_BernsteinCopula_bernstein_emloop`, u, v, R_init, tau_bar_init, options)
+bernstein_estep <- function(u, v, R, prior, tau) {
+    .Call(`_BernsteinCopula_bernstein_estep`, u, v, R, prior, tau)
 }
 
-bernstein_estep <- function(u, v, R, tau) {
-    .Call(`_BernsteinCopula_bernstein_estep`, u, v, R, tau)
+bernstein_estep_with_weight <- function(u, v, du, dv, R, prior, tau, exw1, exw2, eyw1, eyw2) {
+    .Call(`_BernsteinCopula_bernstein_estep_with_weight`, u, v, du, dv, R, prior, tau, exw1, exw2, eyw1, eyw2)
 }
 
-bernstein_estep_with_weight <- function(u, v, du, dv, R, tau, exw1, exw2, eyw1, eyw2) {
-    .Call(`_BernsteinCopula_bernstein_estep_with_weight`, u, v, du, dv, R, tau, exw1, exw2, eyw1, eyw2)
+bernstein_estep_group <- function(u, v, R, N, prior, tau) {
+    .Call(`_BernsteinCopula_bernstein_estep_group`, u, v, R, N, prior, tau)
+}
+
+bernstein_estep_group_with_weight <- function(u, v, R, N, prior, tau, exw1, exw2, eyw1, eyw2) {
+    .Call(`_BernsteinCopula_bernstein_estep_group_with_weight`, u, v, R, N, prior, tau, exw1, exw2, eyw1, eyw2)
 }
 
 dbinom_loader <- function(n, p) {
@@ -33,8 +37,24 @@ emstep_exponential <- function(x, w1, w2, params) {
     .Call(`_BernsteinCopula_emstep_exponential`, x, w1, w2, params)
 }
 
+emstep_exponential_group <- function(x, w1, w2, params) {
+    .Call(`_BernsteinCopula_emstep_exponential_group`, x, w1, w2, params)
+}
+
 emstep_normal <- function(x, w1, w2, params) {
     .Call(`_BernsteinCopula_emstep_normal`, x, w1, w2, params)
+}
+
+emstep_normal_group <- function(x, w1, w2, params) {
+    .Call(`_BernsteinCopula_emstep_normal_group`, x, w1, w2, params)
+}
+
+emstep_ph_build_interval_data <- function(x, w1, w2) {
+    .Call(`_BernsteinCopula_emstep_ph_build_interval_data`, x, w1, w2)
+}
+
+emstep_ph_build_interval_data_group <- function(x, w1, w2) {
+    .Call(`_BernsteinCopula_emstep_ph_build_interval_data_group`, x, w1, w2)
 }
 
 sinkhorn_scaling <- function(W, maxiter = 1000L, tol = 1e-10) {

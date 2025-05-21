@@ -1,10 +1,8 @@
-#' Run EM Algorithm for Bernstein Copula Estimation (R wrapper)
+#' EM Algorithm for Bernstein Copula with Binned Data
 #'
-#' Wrapper for the C++ EM implementation. Estimates the copula weight matrix \code{R}
-#' given pseudo-observations \code{u}, \code{v}, and an initial matrix \code{R_init}.
-#'
-#' @param u Numeric vector in [0, 1]. Pseudo-observations for variable X.
-#' @param v Numeric vector in [0, 1]. Pseudo-observations for variable Y.
+#' @param ubreaks Numeric vector. Breakpoints for the first variable.
+#' @param vbreaks Numeric vector. Breakpoints for the second variable.
+#' @param counts Numeric matrix. Counts of observations in each bin.
 #' @param R_init Numeric matrix (m × n). Initial Bernstein copula weight matrix.
 #' @param prior Numeric matrix (m × n). Dirichlet prior for Bernstein copula weight matrix.
 #' @param options List. Control parameters. See Details.
@@ -22,10 +20,11 @@
 #' @details
 #' The \code{options} list may include:
 #' \itemize{
-#'   \item \code{maxiter}: Maximum number of iterations (default: 1000)
+#'   \item \code{maxiter}: Maximum number of iterations (default: 2000)
 #'   \item \code{abstol}: Absolute tolerance for log-likelihood (default: 1e-3)
 #'   \item \code{reltol}: Relative tolerance (default: 1e-6)
-#'   \item \code{mstep_maxiter}: Maximum M-step iterations (default: 1000)
+#'   \item \code{steps}: Number of steps for verbose output (default: 100)
+#'   \item \code{mstep_maxiter}: Maximum M-step iterations (default: 2000)
 #'   \item \code{mstep_abstol}: M-step tolerance (default: 1e-10)
 #'   \item \code{mstep}: M-step algorithm ("sinkhorn" or "dou") (default: "sinkhorn")
 #'   \item \code{verbose}: Logical. Print progress (default: FALSE)
@@ -34,16 +33,26 @@
 #' @export
 #'
 #' @examples
-#' u <- runif(100)
-#' v <- runif(100)
-#' R0 <- matrix(1/9, 3, 3)
-#' result <- fit.copula(u, v, R0)
+#' ubreaks <- seq(0, 1, length.out = 6)
+#' vbreaks <- seq(0, 1, length.out = 6)
+#' counts <- matrix(c(10, 20, 30, 40, 50,
+#'                   15, 25, 35, 45, 55,
+#'                   20, 30, 40, 50, 60,
+#'                   25, 35, 45, 55, 65,
+#'                   30, 40, 50, 60, 70), nrow = 5, byrow = TRUE)
+#' R_init <- matrix(1/9, 3, 3)
+#' result <- fit.copula.group(ubreaks, vbreaks, counts, R_init)
 #' result$R
-fit.copula <- function(u, v, R_init, prior = NULL, options = list()) {
+#' result$llf
+#' result$converged
+#' result$iter
+#' result$abserror
+#' result$relerror
+fit.copula.group <- function(ubreaks, vbreaks, counts, R_init, prior = NULL, options = list()) {
+  stopifnot(is.matrix(counts))
   stopifnot(is.matrix(R_init))
   m <- nrow(R_init)
   n <- ncol(R_init)
-  stopifnot(length(u) == length(v))
 
   # default prior: ones
   if (is.null(prior)) {
@@ -56,29 +65,68 @@ fit.copula <- function(u, v, R_init, prior = NULL, options = list()) {
     maxiter = 2000,
     abstol = 1e-3,
     reltol = 1e-6,
+    steps = 100,
     mstep_maxiter = 2000,
     mstep_abstol = 1e-10,
     mstep = "sinkhorn", # or "dou"
-    verbose = FALSE
+    verbose = TRUE
   )
   opts <- modifyList(defaults, options)
 
-  bernstein_emloop(u, v, R_init, prior, opts)
+  # run EM algorithm
+  R <- R_init
+  llf_old <- -Inf
+  converged <- FALSE
+  for (iter in seq_len(opts$maxiter)) {
+
+    tau_bar <- matrix(0, m, n)
+    llf <- bernstein_estep_group(ubreaks, vbreaks, R, counts, prior, tau_bar)
+
+    if (opts$mstep == "dou") {
+      R <- dou_mstep(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
+    } else if (opts$mstep == "sinkhorn") {
+      R <- sinkhorn_scaling(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
+    } else if (opts$mstep == "noconstraint") {
+      R <- tau_bar / sum(tau_bar)
+    } else {
+      stop("Unknown mstep method: ", opts$mstep)
+    }
+
+    if (llf - llf_old < 0) {
+      warning("Log-likelihood decreased at iteration ", iter, ": ", llf, " < ", llf_old)
+    }
+    abserror <- abs(llf - llf_old)
+    relerror <- abs(llf - llf_old) / (abs(llf_old) + 1e-10)
+
+    if (opts$verbose && iter %% opts$steps == 0) {
+      cat(sprintf("iter: %d, loglik: %.6f, abs: %.2e, rel: %.2e\n", iter, llf, abserror, relerror))
+    }
+
+    if (abserror < opts$abstol && relerror < opts$reltol) {
+      converged <- TRUE
+      break
+    }
+
+    llf_old <- llf
+  }
+
+  list(
+    R = R,
+    llf = llf,
+    converged = converged,
+    iter = iter,
+    abserror = abserror,
+    relerror = relerror
+  )
 }
 
-#' EM Algorithm for Bernstein Copula with Flexible Marginals (via R6)
+#' EM Algorithm for Joint Bernstein Copula with Binned Data
 #'
-#' Runs the EM algorithm to estimate a Bernstein copula and marginal distributions jointly.
-#' Marginals are specified via R6 objects `Fx` and `Gy`, each of which should provide:
-#' - `params`: named list of initial parameters,
-#' - `pdf_func(x, params)`: function to evaluate the marginal density,
-#' - `cdf_func(x, params)`: function to evaluate the marginal CDF,
-#' - `emstep_func(x, w1, w2, params)`: function to update the parameters in the M-step.
-#'
-#' @param x Numeric vector. Samples for variable X.
-#' @param y Numeric vector. Samples for variable Y.
-#' @param R_init Matrix. Initial copula weight matrix of size \eqn{m \times n}.
-#' @param prior Matrix or `NULL`. Prior weight matrix for tau-bar; defaults to a matrix of ones.
+#' @param xbreaks Numeric vector. Breakpoints for the first variable.
+#' @param ybreaks Numeric vector. Breakpoints for the second variable.
+#' @param counts Numeric matrix. Counts of observations in each bin.
+#' @param R_init Numeric matrix (m × n). Initial Bernstein copula weight matrix.
+#' @param prior Numeric matrix (m × n). Dirichlet prior for Bernstein copula weight matrix.
 #' @param Fx R6 object representing the marginal model for X. Must have fields and methods as described above.
 #' @param Gy R6 object representing the marginal model for Y. Must have fields and methods as described above.
 #' @param options List of algorithm options. Must contain:
@@ -107,15 +155,12 @@ fit.copula <- function(u, v, R_init, prior = NULL, options = list()) {
 #' }
 #'
 #' @export
-#'
-#' @examples
-#' # See vignette or examples for full usage with R6 marginal models.
-fit.copula.joint <- function(x, y, R_init, prior = NULL,
+fit.copula.group.joint <- function(xbreaks, ybreaks, counts, R_init, prior = NULL,
   Fx, Gy, options = list()) {
+  stopifnot(is.matrix(counts))
   stopifnot(is.matrix(R_init))
   m <- nrow(R_init)
   n <- ncol(R_init)
-  stopifnot(length(x) == length(y))
 
   # default prior: ones
   if (is.null(prior)) {
@@ -128,8 +173,8 @@ fit.copula.joint <- function(x, y, R_init, prior = NULL,
     maxiter = 2000,
     abstol = 1e-3,
     reltol = 1e-6,
-    joint.est = TRUE,
     steps = 100,
+    joint.est = TRUE,
     mstep_maxiter = 2000,
     mstep_abstol = 1e-10,
     mstep = "sinkhorn", # or "dou"
@@ -137,11 +182,12 @@ fit.copula.joint <- function(x, y, R_init, prior = NULL,
   )
   opts <- modifyList(defaults, options)
 
-  N <- length(x)
-  exw1 <- numeric(N)
-  exw2 <- numeric(N)
-  eyw1 <- numeric(N)
-  eyw2 <- numeric(N)
+  n_x <- length(xbreaks)
+  n_y <- length(ybreaks)
+  exw1 <- numeric(n_x)
+  exw2 <- numeric(n_x)
+  eyw1 <- numeric(n_y)
+  eyw2 <- numeric(n_y)
 
   R <- R_init
   params1 <- Fx$params
@@ -149,33 +195,36 @@ fit.copula.joint <- function(x, y, R_init, prior = NULL,
   llf_old <- -Inf
 
   converged <- FALSE
+
   for (iter in seq_len(opts$maxiter)) {
 
-    tau_bar <- prior
+    tau_bar <- matrix(0, m, n)
 
-    du <- Fx$pdf_func(x, params1)
-    dv <- Gy$pdf_func(y, params2)
-    u  <- Fx$cdf_func(x, params1)
-    v  <- Gy$cdf_func(y, params2)
+    u  <- Fx$cdf_func(xbreaks, params1)
+    v  <- Gy$cdf_func(ybreaks, params2)
 
-    llf <- bernstein_estep_with_weight(u, v, du, dv, R, tau_bar, exw1, exw2, eyw1, eyw2)
+    llf <- bernstein_estep_group_with_weight(
+      u, v, R, counts, prior, tau_bar, exw1, exw2, eyw1, eyw2
+    )
 
     if (opts$mstep == "dou") {
       R <- dou_mstep(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
     } else if (opts$mstep == "sinkhorn") {
       R <- sinkhorn_scaling(tau_bar, maxiter = opts$mstep_maxiter, tol = opts$mstep_abstol)
+    } else if (opts$mstep == "noconstraint") {
+      R <- tau_bar / sum(tau_bar)
     } else {
       stop("Unknown mstep method: ", opts$mstep)
     }
 
     if (opts$joint.est == TRUE && !is.null(Fx$emstep_func) && !is.null(Gy$emstep_func)) {
       # Update marginal parameters
-      params1 <- Fx$emstep_func(x, exw1, exw2, params1)
-      params2 <- Gy$emstep_func(y, eyw1, eyw2, params2)
+      params1 <- Fx$emstep_func_group(xbreaks, exw1, exw2, params1)
+      params2 <- Gy$emstep_func_group(ybreaks, eyw1, eyw2, params2)
     }
 
     if (llf - llf_old < 0) {
-      warning("Log-likelihood decreased: ", llf, " < ", llf_old)
+      warning("Log-likelihood decreased at iteration ", iter, ": ", llf, " < ", llf_old)
     }
     abserror <- abs(llf - llf_old)
     relerror <- abs(llf - llf_old) / (abs(llf_old) + 1e-10)

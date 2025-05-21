@@ -6,7 +6,8 @@ void dbinom_loader_inplace(int n, double p, NumericVector& v);
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
-double bernstein_estep(const arma::vec& u, const arma::vec& v, const arma::mat& R, arma::mat& tau) {
+double bernstein_estep(const arma::vec& u, const arma::vec& v,
+  const arma::mat& R, const arma::mat& prior, arma::mat& tau) {
   int m = R.n_rows;
   int n = R.n_cols;
   int N = u.n_elem;
@@ -16,6 +17,11 @@ double bernstein_estep(const arma::vec& u, const arma::vec& v, const arma::mat& 
 
   arma::mat tmp(m, n);
   double llf = 0.0;
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      tau(i, j) = prior(i, j);
+    }
+  }
 
   for (int k = 0; k < N; k++) {
     double uk = u(k);
@@ -51,6 +57,7 @@ double bernstein_estep_with_weight(
   const arma::vec& u, const arma::vec& v,
   const arma::vec& du, const arma::vec& dv,
   const arma::mat& R,
+  const arma::mat& prior,
   arma::mat& tau,
   arma::vec& exw1, arma::vec& exw2,
   arma::vec& eyw1, arma::vec& eyw2) {
@@ -68,6 +75,11 @@ double bernstein_estep_with_weight(
 
   arma::mat tmp(m, n);
   double llf = 0.0;
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      tau(i, j) = prior(i, j);
+    }
+  }
 
   for (int k = 0; k < N; k++) {
     double uk = u(k);

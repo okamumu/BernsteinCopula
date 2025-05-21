@@ -1,37 +1,19 @@
----
-title: "From Data"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{From Data}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.height = 4, fig.width = 6)
 library(BernsteinCopula)
 library(mapfit)
 library(ggplot2)
 library(copulaData)
-```
 
-## Data
 
-```{r load-data}
 data("NELS88")
-```
 
-## Estimation of Marginals
-
-```{r estimate-copula}
 x <- NELS88$Math
 y <- NELS88$Reading
 
-Fx <- normaldist(mean=mean(x), sd=sd(x))
-Fy <- normaldist(mean=mean(y), sd=sd(y))
+# Fx <- normaldist(mean=mean(x), sd=sd(x))
+# Gy <- normaldist(mean=mean(y), sd=sd(y))
 
-xres <- phfit.point(ph=cf1(5), x=x)
-yres <- phfit.point(ph=cf1(5), x=y)
+xres <- phfit.point(ph=cf1(10), x=x)
+yres <- phfit.point(ph=cf1(10), x=y)
 Fx <- phdist(alpha = xres$model$alpha(), rate = xres$model$rate())
 Gy <- phdist(alpha = yres$model$alpha(), rate = yres$model$rate())
 cat("Estimated parameters only from marginals:\n")
@@ -39,16 +21,12 @@ cat("Fx params:\n")
 print(Fx$params)
 cat("Gy params:\n")
 print(Gy$params)
-```
 
-## Estimation of Copula
-
-```{r emloop-joint}
-m <- 4
-n <- 4
+m <- 10
+n <- 10
 R0 <- matrix(1 / (m * n), m, n)
 
-result <- fit.copula.point.joint(
+result <- emloop_with_F(
   x = x,
   y = y,
   R_init = R0,
@@ -64,29 +42,24 @@ cat("Fx params:\n")
 print(result$params1)
 cat("Gy params:\n")
 print(result$params2)
-```
 
-## Visualizing Estimated Marginals
-
-```{r estimated-marginals}
 xgrid <- seq(0, 100, length.out = 200)
 
 df_fx <- data.frame(x = xgrid, density = Fx$pdf(xgrid))
-ggplot(df_fx, aes(x = x, y = density)) +
+print(
+  ggplot(df_fx, aes(x = x, y = density)) +
   geom_line(color = "steelblue") +
   labs(title = "Updated Marginal of X", x = "X", y = "Density") +
   theme_minimal()
-
+)
 df_gy <- data.frame(y = xgrid, density = Gy$pdf(xgrid))
-ggplot(df_gy, aes(x = y, y = density)) +
+
+print(
+  ggplot(df_gy, aes(x = y, y = density)) +
   geom_line(color = "darkgreen") +
   labs(title = "Updated Marginal of Y", x = "Y", y = "Density") +
   theme_minimal()
-```
-
-## Viualization of the Copula
-
-```{r plot-copula}
+)
 Rhat <- result$R
 Fx$params <- result$params1
 Gy$params <- result$params2
@@ -97,12 +70,15 @@ Z <- bernstein_joint_pdf_grid(xg, yg, Rhat, Fx, Gy)
 
 df_data <- data.frame(x = x, y = y)
 
-plot_contour(xg, yg, Z,
+print(
+  plot_contour(xg, yg, Z,
              title = "Estimated Joint Density (filled)",
              xlabel = "x", ylabel = "y")
+)
 
-plot_contour(xg, yg, Z, filled = FALSE,
+print(
+  plot_contour(xg, yg, Z, filled = FALSE,
              title = "Estimated Joint Density with Data",
              xlabel = "x", ylabel = "y",
              points = df_data)
-```
+)

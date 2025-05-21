@@ -56,7 +56,7 @@ m <- 4
 n <- 4
 R0 <- matrix(1 / (m * n), m, n)
 
-result <- fit.copula.joint(
+result <- fit.copula.point.joint(
   x = x,
   y = y,
   R_init = R0,

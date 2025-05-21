@@ -79,7 +79,7 @@ We initialize a uniform matrix for the copula weights:
 m <- 4
 n <- 4
 R0 <- matrix(1/(m * n), m, n)
-result <- fit.copula(u, v, R_init = R0)
+result <- fit.copula.point(u, v, R_init = R0)
 result$R
 ```
 
