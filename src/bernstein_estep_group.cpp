@@ -138,6 +138,9 @@ double bernstein_estep_group_with_weight(
   double llf = 0.0;
   for (int k = 1; k < n_x; k++) {
     for (int l = 1; l < n_y; l++) {
+      if (N(k-1, l-1) == 0) {
+        continue;
+      }
       double w = 0.0;
       for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
@@ -145,7 +148,7 @@ double bernstein_estep_group_with_weight(
         }
       }
       if (w <= 0) {
-        Rcpp::stop("Negative weight encountered in Bernstein E-step.");
+        Rcpp::stop("Negative weight encountered in Bernstein E-step. w=%e", w);
       }
       for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {

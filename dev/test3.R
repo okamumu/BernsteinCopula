@@ -14,7 +14,7 @@ data("NELS88")
 x <- NELS88$Math
 y <- NELS88$Reading
 
-data <- bincount2d(x, y, xbreaks = seq(0, 100, length.out=10), ybreaks = seq(0, 100, length.out=10))
+data <- bincount2d(x, y, xbreaks = seq(0, 100, length.out=100), ybreaks = seq(0, 100, length.out=100))
 
 # Fx <- normaldist(mean=mean(x), sd=sd(x))
 # Gy <- normaldist(mean=mean(y), sd=sd(y))
